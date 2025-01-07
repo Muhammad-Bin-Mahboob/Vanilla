@@ -53,7 +53,7 @@ function checkCookie() {
             // Mostrar el nuevo email y las fechas
             messageContainer.innerHTML = 
                 '<p>Email: ' + email + '</p>' +
-                '<p>Last Access Date: ' + currentDate + '</p>' +
+                '<p>Current Access Date: ' + currentDate + '</p>' +
                 '<p>Previous Access Date: ' + (previousAccessDate || 'N/A') + '</p>';
 
         } else {
@@ -64,7 +64,7 @@ function checkCookie() {
             // Mostrar el email y las fechas actualizadas
             messageContainer.innerHTML = 
                 '<p>Email: ' + storedEmail + '</p>' +
-                '<p>Last Access Date: ' + currentDate + '</p>' +
+                '<p>Current Access Date: ' + currentDate + '</p>' +
                 '<p>Previous Access Date: ' + (previousAccessDate || 'N/A') + '</p>';
         }
     } else if (storedEmail) {
