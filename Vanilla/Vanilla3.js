@@ -21,11 +21,50 @@ function addTableHead() {
 
 // Habilitar el botón de Guardar solo cuando todas las condiciones se cumplan
 function checkSaveButtonState() {
-    const isQuestionValid = questionInput.value.trim() !== '';
-    const isAnswerSelected = trueRadio.checked || falseRadio.checked;
-    const isPointsValid = pointsInput.value >= 0 && pointsInput.value <= 9;
+    // Validar si la pregunta es válida
+    let isQuestionValid = false;
+    if (questionInput.value.trim() !== '') {
+        isQuestionValid = true;
+    } else {
+        isQuestionValid = false;
+    }
 
-    saveButton.disabled = !(isQuestionValid && isAnswerSelected && isPointsValid);
+    // Validar si una respuesta está seleccionada
+    let isAnswerSelected = false;
+    if (trueRadio.checked) {
+        isAnswerSelected = true;
+    } else if (falseRadio.checked) {
+        isAnswerSelected = true;
+    } else {
+        isAnswerSelected = false;
+    }
+
+    // Validar si los puntos son válidos
+    let isPointsValid = false;
+    if (pointsInput.value >= 0) {
+        if (pointsInput.value <= 9) {
+            isPointsValid = true;
+        } else {
+            isPointsValid = false;
+        }
+    } else {
+        isPointsValid = false;
+    }
+
+    // Habilitar o deshabilitar el botón de guardar
+    if (isQuestionValid === true) {
+        if (isAnswerSelected === true) {
+            if (isPointsValid === true) {
+                saveButton.disabled = false;
+            } else {
+                saveButton.disabled = true;
+            }
+        } else {
+            saveButton.disabled = true;
+        }
+    } else {
+        saveButton.disabled = true;
+    }
 }
 
 // Envío del formulario
