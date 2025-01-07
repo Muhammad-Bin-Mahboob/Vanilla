@@ -1,4 +1,4 @@
-// Obtener elementos del DOM
+// Obtener elementos
 const questionForm = document.getElementById('questionForm');
 const questionInput = document.getElementById('question');
 const trueRadio = document.getElementById('true');
