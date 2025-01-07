@@ -1,4 +1,4 @@
-// Obtener el email del parámetro en la URL
+// Obtener el email del parámetro en la URL 
 var email = new URLSearchParams(window.location.search).get('email');
 
 function setCookie(cname, cvalue, exdays) {
@@ -26,7 +26,7 @@ function getCookie(cname) {
 function checkCookie() {
     var storedEmail = getCookie("email");
     var lastAccessDate = getCookie(storedEmail + "_last_access_date") || 'N/A'; // Asegurando que no esté vacío
-    var previousAccessDate = getCookie(storedEmail + "_previous_access_date") || 'N/A'; // Asegurando que no esté vacío
+    var previousAccessDate = getCookie(storedEmail + "_previous_access_date") || 'N/A'; // Puede ser N/A si no existe
 
     var messageContainer = document.getElementById("messages2");
 
@@ -46,15 +46,17 @@ function checkCookie() {
     if (email) {
         // Si el email es nuevo o ha cambiado, actualizar cookies
         if (storedEmail !== email) {
+            // Guardamos la fecha de acceso actual como 'previous_access_date' antes de actualizar
+            setCookie(storedEmail + "_previous_access_date", lastAccessDate, 365);
             setCookie("email", email, 365);
             setCookie(email + "_last_access_date", currentDate, 365);
-            setCookie(email + "_previous_access_date", lastAccessDate, 365);
+            setCookie(email + "_previous_access_date", currentDate, 365);
 
             // Mostrar el nuevo email y las fechas
             messageContainer.innerHTML = 
                 '<p>Email: ' + email + '</p>' +
-                '<p>Current Access Date: ' + currentDate + '</p>' +
-                '<p>Previous Access Date: ' + (previousAccessDate || 'N/A') + '</p>';
+                '<p>Current Access Date: ' + currentDate + '</p>'; 
+                // Mostrar solo el "current access" la primera vez
 
         } else {
             // Si el email no ha cambiado, solo actualizar las fechas
@@ -64,19 +66,21 @@ function checkCookie() {
             // Mostrar el email y las fechas actualizadas
             messageContainer.innerHTML = 
                 '<p>Email: ' + storedEmail + '</p>' +
-                '<p>Current Access Date: ' + currentDate + '</p>' +
-                '<p>Previous Access Date: ' + (previousAccessDate || 'N/A') + '</p>';
+                '<p>Previous Access Date: ' + previousAccessDate + '</p>';
         }
     } else if (storedEmail) {
         // Si no hay nuevo email, solo actualizar las fechas
-        setCookie(storedEmail + "_previous_access_date", previousAccessDate, 365);
+        if (!previousAccessDate) {
+            previousAccessDate = currentDate;  // Si no existe la cookie de 'previous_access_date', es la primera vez
+        }
+        
+        setCookie(storedEmail + "_previous_access_date", lastAccessDate, 365);
         setCookie(storedEmail + "_last_access_date", currentDate, 365);
 
         // Mostrar el email y las fechas actualizadas
         messageContainer.innerHTML = 
             '<p>Email: ' + storedEmail + '</p>' +
-            '<p>Current Access Date: ' + currentDate + '</p>' +
-            '<p>Previous Access Date: ' + (previousAccessDate || 'N/A') + '</p>';
+            '<p>Previous Access Date: ' + previousAccessDate + '</p>';
     }
 }
 
@@ -85,7 +89,9 @@ window.onload = checkCookie;
 
 // Redirigir a la página Vanilla3.html con el email como parámetro en la URL al hacer clic en el botón
 var boton = document.getElementById('btn');
-boton.addEventListener('click', changepage);
+if (boton) {
+    boton.addEventListener('click', changepage);
+}
 
 function changepage(event) {
     event.preventDefault();
@@ -94,3 +100,6 @@ function changepage(event) {
         window.location.href = 'Vanilla3.html?email=' + email;
     }
 }
+
+
+
