@@ -18,6 +18,7 @@ function handleControlF10(event) {
         var userInput = document.createElement('input');
         userInput.id = 'user';
 
+        // Solo valida el correo si el usuario ha terminado de escribir y hace blur
         userInput.addEventListener('blur', function() {
             validateEmail(userInput);
         });
@@ -35,22 +36,23 @@ function showUserInputAgain() {
     var userInput = document.createElement('input');
     userInput.id = 'user';
     
+    // Validación cuando el campo pierde el foco
     userInput.addEventListener('blur', function() {
-        validateEmail(userInput);
-    });
+        var email = userInput.value;
+        var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
 
+        // Validación solo cuando el campo tiene texto y el formato es incorrecto
+        if (email !== "" && !emailRegex.test(email)) {
+            // salta este error si el correo no está vacío pero el formato no es valido
+            alert('Correo incorrecto. Por favor, ingresa un correo con este formato: ejemplo@gmail.com.');
+        } else if (email) {
+            // si todo esta bien pues pasamaos a Vanilla2.html
+            window.location.href = 'Vanilla2.html?email=' + email;
+        }
+    });
     messageContainer.appendChild(userInput);
 }
 
-function validateEmail(input) {
-    var email = input.value;
-    var emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
 
-    if (!emailRegex.test(email)) {
-        alert('Correo incorrecto. Por favor, ingresa un correo con este formato: ejemplo@gmail.com.');
-    } else {
-        window.location.href = 'Vanilla2.html?email=' + email;
-    }
-}
 
 
