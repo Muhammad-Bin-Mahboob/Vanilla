@@ -41,21 +41,21 @@ function checkCookie() {
     const seconds = now.getSeconds(); // Segundos
 
     // Construir la cadena en formato "YYYY-MM-DD HH:MM:SS"
-    const currentDate = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+    const currentDate = 'la ultima fecha que entraste fue ' +year + '-' + month + '-' + day + ' y el tiempo es de ' + hours + ':' + minutes + ':' + seconds;
 
     if (email) {
         // Si el email es nuevo o ha cambiado, actualizar cookies
         if (storedEmail !== email) {
             // Guardamos la fecha de acceso actual como 'previous_access_date' antes de actualizar
-            setCookie(storedEmail + "_previous_access_date", lastAccessDate, 365);
+            //setCookie(storedEmail + "_previous_access_date", lastAccessDate, 365);
             setCookie("email", email, 365);
             setCookie(email + "_last_access_date", currentDate, 365);
             setCookie(email + "_previous_access_date", currentDate, 365);
 
             // Mostrar el nuevo email y las fechas
             messageContainer.innerHTML = 
-                '<p>Email: ' + email + '</p>' +
-                '<p>Current Access Date: ' + currentDate + '</p>'; 
+                '<p>Email: ' + email + '</p>';
+                //'<p>Previous Access Date: ' + previousAccessDate + '</p>';; 
                 // Mostrar solo el "current access" la primera vez
 
         } else {
@@ -71,7 +71,7 @@ function checkCookie() {
     } else if (storedEmail) {
         // Si no hay nuevo email, solo actualizar las fechas
         if (!previousAccessDate) {
-            previousAccessDate = currentDate;  // Si no existe la cookie de 'previous_access_date', es la primera vez
+            previousAccessDate = 'N/A';  // Si no existe la cookie de 'previous_access_date', es la primera vez
         }
         
         setCookie(storedEmail + "_previous_access_date", lastAccessDate, 365);
@@ -100,6 +100,8 @@ function changepage(event) {
         window.location.href = 'Vanilla3.html?email=' + email;
     }
 }
+
+
 
 
 

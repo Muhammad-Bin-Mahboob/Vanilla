@@ -10,66 +10,47 @@ const newPanel = document.getElementById('new');
 
 var email = new URLSearchParams(window.location.search).get('email');
 
-// Agregar el encabezado de la tabla
+let savingQuestions = []; // Para hacer seguimiento de las preguntas en estado "Saving..."
+
 function addTableHead() {
-    if (!newPanel.querySelector('thead')) { // Verifica si ya existe un encabezado
+    if (!newPanel.querySelector('thead')) {
         const header = document.createElement('thead');
         header.innerHTML = '<tr><th>Pregunta</th><th>Respuesta</th><th>Puntos</th><th>Estado</th></tr>';
         newPanel.appendChild(header);
     }
 }
 
-// Habilitar el botón de Guardar solo cuando todas las condiciones se cumplan
 function checkSaveButtonState() {
-    // Validar si la pregunta es válida
-    let isQuestionValid = false;
+    let isQuestionValid, isAnswerSelected, isPointsValid;
+
     if (questionInput.value.trim() !== '') {
         isQuestionValid = true;
     } else {
         isQuestionValid = false;
     }
 
-    // Validar si una respuesta está seleccionada
-    let isAnswerSelected = false;
-    if (trueRadio.checked) {
-        isAnswerSelected = true;
-    } else if (falseRadio.checked) {
+    if (trueRadio.checked || falseRadio.checked) {
         isAnswerSelected = true;
     } else {
         isAnswerSelected = false;
     }
 
-    // Validar si los puntos son válidos
-    let isPointsValid = false;
-    if (pointsInput.value >= 0) {
-        if (pointsInput.value <= 9) {
-            isPointsValid = true;
-        } else {
-            isPointsValid = false;
-        }
+    if (pointsInput.value >= 0 && pointsInput.value <= 9) {
+        isPointsValid = true;
     } else {
         isPointsValid = false;
     }
 
-    // Habilitar o deshabilitar el botón de guardar
-    if (isQuestionValid === true) {
-        if (isAnswerSelected === true) {
-            if (isPointsValid === true) {
-                saveButton.disabled = false;
-            } else {
-                saveButton.disabled = true;
-            }
-        } else {
-            saveButton.disabled = true;
-        }
+    if (isQuestionValid && isAnswerSelected && isPointsValid) {
+        saveButton.disabled = false;
     } else {
         saveButton.disabled = true;
     }
 }
 
-// Envío del formulario
 questionForm.addEventListener('submit', function (event) {
-    event.preventDefault(); // Prevenir recarga de página
+    event.preventDefault();
+    //uso esto para evitar que se ejecute la acción predeterminada de un evento.
 
     const questionData = {
         question: questionInput.value.trim(),
@@ -78,24 +59,57 @@ questionForm.addEventListener('submit', function (event) {
         status: 'Saving...'
     };
 
-    backButton.disabled = true;
+    savingQuestions.push(questionData); // Agregar la pregunta a la lista
+    updateBackButtonState();
+
     addQuestionToPanel(questionData);
 
-    setTimeout(function () {
-        try {
-            saveQuestionToCookie(questionData); // Guardar en cookies
-            questionData.status = 'OK';
-        } catch (error) {
-            questionData.status = 'ERROR';
-        }
-        updatePanelWithStatus(questionData);
-        backButton.disabled = false;
-        questionForm.reset();
-        checkSaveButtonState();
-    }, 5000);
+    processQuestionIndividually(questionData); 
+    // Temporizador independiente que tiene que tener cada pregunta
+
+    questionForm.reset();
+    checkSaveButtonState();
 });
 
-// Agregar pregunta al panel
+function processQuestionIndividually(questionData) {
+    saveQuestion(questionData)
+        .then(() => new Promise(resolve => setTimeout(resolve, 5000))) // Esperar 5 segundos
+        .then(() => {
+            questionData.status = 'OK';
+            updatePanelWithStatus(questionData);
+            updateBackButtonState(); // Verifico estado del botón atrás
+        })
+        .catch(() => {
+            questionData.status = 'ERROR';
+            updatePanelWithStatus(questionData);
+            updateBackButtonState();
+        });
+}
+
+function updateBackButtonState() {
+    // Habilito el botón "Atrás" solo si al menos una pregunta no está en estado 'OK'
+    let hasInvalidStatus = false;
+    for (let question of savingQuestions) {
+        if (question.status !== 'OK') {
+            hasInvalidStatus = true;
+            break;
+        }
+    }
+    backButton.disabled = hasInvalidStatus;
+}
+
+
+function saveQuestion(questionData) {
+    return new Promise((resolve, reject) => {
+        try {
+            saveQuestionToCookie(questionData);
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 function addQuestionToPanel(questionData) {
     const row = document.createElement('tr');
     row.innerHTML = '<td>' + questionData.question + '</td>' +
@@ -105,24 +119,21 @@ function addQuestionToPanel(questionData) {
     newPanel.appendChild(row);
 }
 
-// Actualizar el estado de la pregunta en el panel
 function updatePanelWithStatus(questionData) {
     const rows = newPanel.querySelectorAll('tr');
-    rows.forEach(function (row) {
+    rows.forEach(row => {
         if (row.cells[0].textContent === questionData.question) {
             row.cells[3].textContent = questionData.status;
         }
     });
 }
 
-// Guardar preguntas en cookies
 function saveQuestionToCookie(questionData) {
     let questions = getCookies(email + '_questions') || [];
     questions.push(questionData);
     setCookies(email + '_questions', JSON.stringify(questions), 7);
 }
 
-// Obtener cookies por nombre
 function getCookies(name) {
     let value = "; " + document.cookie;
     let parts = value.split("; " + name + "=");
@@ -132,7 +143,6 @@ function getCookies(name) {
     return null;
 }
 
-// Establecer cookies
 function setCookies(name, value, days) {
     let expires = "";
     if (days) {
@@ -143,26 +153,22 @@ function setCookies(name, value, days) {
     document.cookie = name + "=" + value + expires + "; path=/";
 }
 
-// Cargar preguntas desde cookies
 function loadQuestionsFromCookies() {
     const questions = getCookies(email + '_questions') || [];
     newPanel.innerHTML = '<p>Loading questions...</p>';
 
-    // Agregar el encabezado de la tabla
-    
-    setTimeout(function () {
-        newPanel.innerHTML = ''; // Limpiar el mensaje de carga
+    setTimeout(() => {
+        newPanel.innerHTML = '';
         addTableHead();
-        questions.forEach(function (question) {
+        questions.forEach(question => {
             question.status = 'OK';
             addQuestionToPanel(question);
         });
     }, 5000);
-
 }
 
 // Eventos adicionales
-loadQuestionsFromCookies(); // Cargar preguntas al iniciar
+loadQuestionsFromCookies();
 questionInput.addEventListener('input', checkSaveButtonState);
 trueRadio.addEventListener('change', checkSaveButtonState);
 falseRadio.addEventListener('change', checkSaveButtonState);
@@ -171,6 +177,14 @@ pointsInput.addEventListener('input', checkSaveButtonState);
 backButton.addEventListener('click', () => {
     window.location.href = 'Vanilla2.html?email=' + email;
 });
+
+
+
+
+
+
+
+
 
 
 
